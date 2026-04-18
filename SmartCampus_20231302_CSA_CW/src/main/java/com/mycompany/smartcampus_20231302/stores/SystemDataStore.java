@@ -1,12 +1,12 @@
-package com.mycompany.smartcampus_20231302.store;
+package com.mycompany.smartcampus_20231302.stores;
 
-import com.mycompany.smartcampus_20231302.exception.LinkedResourceNotFoundException;
-import com.mycompany.smartcampus_20231302.exception.RoomNotEmptyException;
-import com.mycompany.smartcampus_20231302.exception.SensorUnavailableException;
-import com.mycompany.smartcampus_20231302.model.Room;
-import com.mycompany.smartcampus_20231302.model.Sensor;
-import com.mycompany.smartcampus_20231302.model.SensorReading;
-import com.mycompany.smartcampus_20231302.model.SensorStatus;
+import com.mycompany.smartcampus_20231302.exceptions.ResourceNotFoundException;
+import com.mycompany.smartcampus_20231302.exceptions.RoomIsNotEmptyException;
+import com.mycompany.smartcampus_20231302.exceptions.SensorNotAvailableException;
+import com.mycompany.smartcampus_20231302.models.CampusRoom;
+import com.mycompany.smartcampus_20231302.models.SensorDevice;
+import com.mycompany.smartcampus_20231302.models.SensorData;
+import com.mycompany.smartcampus_20231302.models.SensorStatus;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -19,22 +19,22 @@ import java.util.concurrent.atomic.AtomicInteger;
  * Central in-memory store for rooms, sensors, and sensor readings.
  * Uses thread-safe collections plus synchronized write operations.
  */
-public class DataStore {
+public class SystemDataStore {
 
-    private static final DataStore INSTANCE = new DataStore();
+    private static final SystemDataStore INSTANCE = new SystemDataStore();
 
     private final AtomicInteger roomIdGenerator = new AtomicInteger(0);
     private final AtomicInteger sensorIdGenerator = new AtomicInteger(0);
     private final AtomicInteger readingIdGenerator = new AtomicInteger(0);
 
-    private final Map<Integer, Room> rooms = new ConcurrentHashMap<Integer, Room>();
-    private final Map<Integer, Sensor> sensors = new ConcurrentHashMap<Integer, Sensor>();
-    private final Map<Integer, List<SensorReading>> sensorReadings = new ConcurrentHashMap<Integer, List<SensorReading>>();
+    private final Map<Integer, CampusRoom> rooms = new ConcurrentHashMap<Integer, CampusRoom>();
+    private final Map<Integer, SensorDevice> sensors = new ConcurrentHashMap<Integer, SensorDevice>();
+    private final Map<Integer, List<SensorData>> sensorReadings = new ConcurrentHashMap<Integer, List<SensorData>>();
 
     /**
      * Private constructor for singleton pattern.
      */
-    private DataStore() {
+    private SystemDataStore() {
     }
 
     /**
@@ -42,7 +42,7 @@ public class DataStore {
      *
      * @return datastore singleton
      */
-    public static DataStore getInstance() {
+    public static SystemDataStore getInstance() {
         return INSTANCE;
     }
 
@@ -51,10 +51,10 @@ public class DataStore {
      *
      * @return room list
      */
-    public List<Room> getAllRooms() {
-        List<Room> results = new ArrayList<Room>(rooms.values());
+    public List<CampusRoom> getAllRooms() {
+        List<CampusRoom> results = new ArrayList<CampusRoom>(rooms.values());
         // Keep output deterministic for clients and tests.
-        Collections.sort(results, Comparator.comparing(Room::getId));
+        Collections.sort(results, Comparator.comparing(CampusRoom::getId));
         return results;
     }
 
@@ -64,7 +64,7 @@ public class DataStore {
      * @param roomId room identifier
      * @return room or null
      */
-    public Room getRoomById(int roomId) {
+    public CampusRoom getRoomById(int roomId) {
         return rooms.get(roomId);
     }
 
@@ -74,10 +74,10 @@ public class DataStore {
      * @param request requested room payload
      * @return created room
      */
-    public synchronized Room createRoom(Room request) {
+    public synchronized CampusRoom createRoom(CampusRoom request) {
         // Generate monotonic id in a thread-safe manner.
         int id = roomIdGenerator.incrementAndGet();
-        Room room = new Room(id, request.getName(), request.getBuilding(), request.getFloor(), request.getDescription());
+        CampusRoom room = new CampusRoom(id, request.getName(), request.getBuilding(), request.getFloor(), request.getDescription());
         rooms.put(id, room);
         return room;
     }
@@ -89,15 +89,15 @@ public class DataStore {
      * @return true if deleted, false when room does not exist
      */
     public synchronized boolean deleteRoom(int roomId) {
-        Room room = rooms.get(roomId);
+        CampusRoom room = rooms.get(roomId);
         if (room == null) {
             return false;
         }
 
         // Enforce business rule: room cannot be removed while sensors are assigned.
-        for (Sensor sensor : sensors.values()) {
+        for (SensorDevice sensor : sensors.values()) {
             if (sensor.getRoomId() != null && sensor.getRoomId() == roomId) {
-                throw new RoomNotEmptyException("Room " + roomId + " still has active sensors assigned.");
+                throw new RoomIsNotEmptyException("CampusRoom " + roomId + " still has active sensors assigned.");
             }
         }
 
@@ -112,9 +112,9 @@ public class DataStore {
      * @param type optional sensor type
      * @return sensor list
      */
-    public List<Sensor> getAllSensors(String type) {
-        List<Sensor> results = new ArrayList<Sensor>();
-        for (Sensor sensor : sensors.values()) {
+    public List<SensorDevice> getAllSensors(String type) {
+        List<SensorDevice> results = new ArrayList<SensorDevice>();
+        for (SensorDevice sensor : sensors.values()) {
             if (type == null || type.trim().isEmpty()) {
                 results.add(sensor);
             } else if (sensor.getType() != null && sensor.getType().equalsIgnoreCase(type.trim())) {
@@ -122,7 +122,7 @@ public class DataStore {
             }
         }
         // Keep output deterministic for clients and tests.
-        Collections.sort(results, Comparator.comparing(Sensor::getId));
+        Collections.sort(results, Comparator.comparing(SensorDevice::getId));
         return results;
     }
 
@@ -132,7 +132,7 @@ public class DataStore {
      * @param sensorId sensor identifier
      * @return sensor or null
      */
-    public Sensor getSensorById(int sensorId) {
+    public SensorDevice getSensorById(int sensorId) {
         return sensors.get(sensorId);
     }
 
@@ -142,20 +142,20 @@ public class DataStore {
      * @param request requested sensor payload
      * @return created sensor
      */
-    public synchronized Sensor createSensor(Sensor request) {
+    public synchronized SensorDevice createSensor(SensorDevice request) {
         Integer roomId = request.getRoomId();
         // Semantic validation for linked resource references.
         if (roomId == null || !rooms.containsKey(roomId)) {
-            throw new LinkedResourceNotFoundException("Room " + roomId + " does not exist.");
+            throw new ResourceNotFoundException("CampusRoom " + roomId + " does not exist.");
         }
 
         // Generate id and assign default status when absent.
         int id = sensorIdGenerator.incrementAndGet();
         SensorStatus status = request.getStatus() == null ? SensorStatus.ACTIVE : request.getStatus();
-        Sensor sensor = new Sensor(id, request.getName(), request.getType(), status, request.getRoomId(), request.getCurrentValue());
+        SensorDevice sensor = new SensorDevice(id, request.getName(), request.getType(), status, request.getRoomId(), request.getCurrentValue());
         sensors.put(id, sensor);
         // Initialize reading history list for this sensor.
-        sensorReadings.put(id, Collections.synchronizedList(new ArrayList<SensorReading>()));
+        sensorReadings.put(id, Collections.synchronizedList(new ArrayList<SensorData>()));
         return sensor;
     }
 
@@ -165,14 +165,14 @@ public class DataStore {
      * @param sensorId sensor identifier
      * @return reading list (defensive copy)
      */
-    public List<SensorReading> getReadingsForSensor(int sensorId) {
-        List<SensorReading> readings = sensorReadings.get(sensorId);
+    public List<SensorData> getReadingsForSensor(int sensorId) {
+        List<SensorData> readings = sensorReadings.get(sensorId);
         if (readings == null) {
             return Collections.emptyList();
         }
         // Synchronize around list copy because list is shared mutable state.
         synchronized (readings) {
-            return new ArrayList<SensorReading>(readings);
+            return new ArrayList<SensorData>(readings);
         }
     }
 
@@ -183,27 +183,27 @@ public class DataStore {
      * @param request reading payload
      * @return created reading or null when sensor is missing
      */
-    public synchronized SensorReading addReading(int sensorId, SensorReading request) {
-        Sensor sensor = sensors.get(sensorId);
+    public synchronized SensorData addReading(int sensorId, SensorData request) {
+        SensorDevice sensor = sensors.get(sensorId);
         if (sensor == null) {
             return null;
         }
         // Enforce MAINTENANCE state rule before accepting readings.
         if (sensor.getStatus() == SensorStatus.MAINTENANCE) {
-            throw new SensorUnavailableException("Sensor " + sensorId + " is in MAINTENANCE mode and cannot accept readings.");
+            throw new SensorNotAvailableException("SensorDevice " + sensorId + " is in MAINTENANCE mode and cannot accept readings.");
         }
 
-        List<SensorReading> readings = sensorReadings.get(sensorId);
+        List<SensorData> readings = sensorReadings.get(sensorId);
         if (readings == null) {
             // Backfill list when missing unexpectedly.
-            readings = Collections.synchronizedList(new ArrayList<SensorReading>());
+            readings = Collections.synchronizedList(new ArrayList<SensorData>());
             sensorReadings.put(sensorId, readings);
         }
 
         // Generate id and normalize timestamp.
         int readingId = readingIdGenerator.incrementAndGet();
         long timestamp = request.getTimestamp() == null ? System.currentTimeMillis() : request.getTimestamp();
-        SensorReading reading = new SensorReading(readingId, sensorId, request.getValue(), timestamp);
+        SensorData reading = new SensorData(readingId, sensorId, request.getValue(), timestamp);
         readings.add(reading);
 
         // Side effect required by coursework: update parent sensor current value.

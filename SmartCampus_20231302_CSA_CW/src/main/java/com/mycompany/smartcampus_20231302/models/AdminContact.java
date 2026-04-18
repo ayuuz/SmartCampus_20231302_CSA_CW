@@ -1,4 +1,4 @@
-package com.mycompany.smartcampus_20231302.model;
+package com.mycompany.smartcampus_20231302.models;
 
 /**
  * Administrator contact details included in discovery response.

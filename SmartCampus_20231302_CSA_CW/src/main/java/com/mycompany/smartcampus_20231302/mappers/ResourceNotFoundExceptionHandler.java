@@ -1,7 +1,7 @@
-package com.mycompany.smartcampus_20231302.mapper;
+package com.mycompany.smartcampus_20231302.mappers;
 
-import com.mycompany.smartcampus_20231302.exception.LinkedResourceNotFoundException;
-import com.mycompany.smartcampus_20231302.model.ErrorResponse;
+import com.mycompany.smartcampus_20231302.exceptions.ResourceNotFoundException;
+import com.mycompany.smartcampus_20231302.models.ErrorResponse;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -13,7 +13,7 @@ import javax.ws.rs.ext.Provider;
  * Maps linked-resource validation failures to HTTP 422 JSON errors.
  */
 @Provider
-public class LinkedResourceNotFoundExceptionMapper implements ExceptionMapper<LinkedResourceNotFoundException> {
+public class ResourceNotFoundExceptionHandler implements ExceptionMapper<ResourceNotFoundException> {
 
     @Context
     private UriInfo uriInfo;
@@ -25,7 +25,7 @@ public class LinkedResourceNotFoundExceptionMapper implements ExceptionMapper<Li
      * @return HTTP 422 response
      */
     @Override
-    public Response toResponse(LinkedResourceNotFoundException exception) {
+    public Response toResponse(ResourceNotFoundException exception) {
         // Keep response body informative but safe.
         String path = uriInfo == null ? "/api/v1/sensors" : uriInfo.getRequestUri().getPath();
         ErrorResponse error = ErrorResponse.of(422, "Unprocessable Entity", exception.getMessage(), path);

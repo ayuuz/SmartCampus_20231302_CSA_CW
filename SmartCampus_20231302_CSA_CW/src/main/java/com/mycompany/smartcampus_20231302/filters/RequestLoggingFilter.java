@@ -1,4 +1,4 @@
-package com.mycompany.smartcampus_20231302.filter;
+package com.mycompany.smartcampus_20231302.filters;
 
 import java.io.IOException;
 import java.util.logging.Logger;
@@ -12,9 +12,9 @@ import javax.ws.rs.ext.Provider;
  * Logs inbound requests and outbound responses for all API calls.
  */
 @Provider
-public class LoggingFilter implements ContainerRequestFilter, ContainerResponseFilter {
+public class RequestLoggingFilter implements ContainerRequestFilter, ContainerResponseFilter {
 
-    private static final Logger LOGGER = Logger.getLogger(LoggingFilter.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(RequestLoggingFilter.class.getName());
 
     /**
      * Logs request method and URI before resource execution.

@@ -1,9 +1,9 @@
-package com.mycompany.smartcampus_20231302.exception;
+package com.mycompany.smartcampus_20231302.exceptions;
 
 /**
  * Thrown when a sensor cannot accept readings due to its current state.
  */
-public class SensorUnavailableException extends RuntimeException {
+public class SensorNotAvailableException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 
@@ -12,7 +12,7 @@ public class SensorUnavailableException extends RuntimeException {
      *
      * @param message exception message
      */
-    public SensorUnavailableException(String message) {
+    public SensorNotAvailableException(String message) {
         super(message);
     }
 }

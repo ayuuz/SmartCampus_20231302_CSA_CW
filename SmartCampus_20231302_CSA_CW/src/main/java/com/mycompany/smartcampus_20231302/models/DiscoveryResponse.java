@@ -1,4 +1,4 @@
-package com.mycompany.smartcampus_20231302.model;
+package com.mycompany.smartcampus_20231302.models;
 
 import java.util.Map;
 

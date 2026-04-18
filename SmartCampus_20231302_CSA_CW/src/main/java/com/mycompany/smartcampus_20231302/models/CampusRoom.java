@@ -1,9 +1,9 @@
-package com.mycompany.smartcampus_20231302.model;
+package com.mycompany.smartcampus_20231302.models;
 
 /**
  * Represents a physical room in the smart campus.
  */
-public class Room {
+public class CampusRoom {
 
     private Integer id;
     private String name;
@@ -14,7 +14,7 @@ public class Room {
     /**
      * Creates an empty room object for JSON deserialization.
      */
-    public Room() {
+    public CampusRoom() {
     }
 
     /**
@@ -26,7 +26,7 @@ public class Room {
      * @param floor floor label/number
      * @param description optional room description
      */
-    public Room(Integer id, String name, String building, String floor, String description) {
+    public CampusRoom(Integer id, String name, String building, String floor, String description) {
         this.id = id;
         this.name = name;
         this.building = building;

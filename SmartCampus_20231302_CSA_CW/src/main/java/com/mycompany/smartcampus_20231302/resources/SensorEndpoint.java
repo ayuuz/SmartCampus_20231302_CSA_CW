@@ -1,14 +1,14 @@
-package com.mycompany.smartcampus_20231302.resource;
+package com.mycompany.smartcampus_20231302.resources;
 
-import com.mycompany.smartcampus_20231302.model.ErrorResponse;
-import com.mycompany.smartcampus_20231302.model.Room;
-import com.mycompany.smartcampus_20231302.store.DataStore;
+import com.mycompany.smartcampus_20231302.models.ErrorResponse;
+import com.mycompany.smartcampus_20231302.models.SensorDevice;
+import com.mycompany.smartcampus_20231302.stores.SystemDataStore;
 import java.util.List;
 import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PathParam;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
@@ -18,78 +18,61 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 
 /**
- * Resource for room collection and room item operations.
+ * Resource for sensor collection operations and readings sub-resource routing.
  */
-@Path("/rooms")
+@Path("/sensors")
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-public class SensorRoomResource {
+public class SensorEndpoint {
 
-    private final DataStore dataStore = DataStore.getInstance();
+    private final SystemDataStore dataStore = SystemDataStore.getInstance();
 
     @Context
     private UriInfo uriInfo;
 
     /**
-     * Returns all rooms.
+     * Creates a sensor linked to an existing room.
      *
-     * @return list of rooms
-     */
-    @GET
-    public List<Room> getAllRooms() {
-        return dataStore.getAllRooms();
-    }
-
-    /**
-     * Creates a room.
-     *
-     * @param request incoming room payload
-     * @return created room with HTTP 201
+     * @param request incoming sensor payload
+     * @return created sensor with HTTP 201
      */
     @POST
-    public Response createRoom(Room request) {
-        // Validate minimal required business field before persisting.
-        if (request == null || isBlank(request.getName())) {
-            throw badRequest("Room payload must include at least a non-empty name.");
+    public Response createSensor(SensorDevice request) {
+        // Validate required fields before applying linked-resource rules.
+        if (request == null || isBlank(request.getName()) || isBlank(request.getType()) || request.getRoomId() == null) {
+            throw badRequest("SensorDevice payload must include name, type, and roomId.");
         }
 
-        // Persist in shared in-memory store and return created representation.
-        Room created = dataStore.createRoom(request);
+        // SystemDataStore validates that roomId exists and may throw ResourceNotFoundException.
+        SensorDevice created = dataStore.createSensor(request);
         return Response.status(Response.Status.CREATED).entity(created).build();
     }
 
     /**
-     * Returns one room by id.
+     * Returns sensors, optionally filtered by query parameter "type".
      *
-     * @param roomId room identifier
-     * @return room
+     * @param type optional sensor type filter
+     * @return list of sensors
      */
     @GET
-    @Path("/{roomId}")
-    public Room getRoom(@PathParam("roomId") int roomId) {
-        Room room = dataStore.getRoomById(roomId);
-        // Convert missing room into structured API error.
-        if (room == null) {
-            throw notFound("Room " + roomId + " not found.");
-        }
-        return room;
+    public List<SensorDevice> getSensors(@QueryParam("type") String type) {
+        return dataStore.getAllSensors(type);
     }
 
     /**
-     * Deletes a room if no sensors are assigned.
+     * Sub-resource locator for sensor reading history and creation.
      *
-     * @param roomId room identifier
-     * @return HTTP 204 when deleted
+     * @param sensorId parent sensor identifier
+     * @return sensor reading sub-resource
      */
-    @DELETE
-    @Path("/{roomId}")
-    public Response deleteRoom(@PathParam("roomId") int roomId) {
-        // DataStore enforces room-not-empty rule and can throw RoomNotEmptyException.
-        boolean deleted = dataStore.deleteRoom(roomId);
-        if (!deleted) {
-            throw notFound("Room " + roomId + " not found.");
+    @Path("/{sensorId}/readings")
+    public SensorReadingEndpoint sensorReadings(@PathParam("sensorId") int sensorId) {
+        SensorDevice sensor = dataStore.getSensorById(sensorId);
+        // Fail fast if sensor does not exist before entering sub-resource logic.
+        if (sensor == null) {
+            throw notFound("SensorDevice " + sensorId + " not found.");
         }
-        return Response.noContent().build();
+        return new SensorReadingEndpoint(sensorId);
     }
 
     /**
@@ -99,7 +82,7 @@ public class SensorRoomResource {
      * @return web application exception
      */
     private WebApplicationException notFound(String message) {
-        String path = uriInfo == null ? "/api/v1/rooms" : uriInfo.getRequestUri().getPath();
+        String path = uriInfo == null ? "/api/v1/sensors" : uriInfo.getRequestUri().getPath();
         ErrorResponse error = ErrorResponse.of(404, "Not Found", message, path);
         return buildWebException(Response.Status.NOT_FOUND, error);
     }
@@ -111,7 +94,7 @@ public class SensorRoomResource {
      * @return web application exception
      */
     private WebApplicationException badRequest(String message) {
-        String path = uriInfo == null ? "/api/v1/rooms" : uriInfo.getRequestUri().getPath();
+        String path = uriInfo == null ? "/api/v1/sensors" : uriInfo.getRequestUri().getPath();
         ErrorResponse error = ErrorResponse.of(400, "Bad Request", message, path);
         return buildWebException(Response.Status.BAD_REQUEST, error);
     }

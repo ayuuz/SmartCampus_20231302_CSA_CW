@@ -1,9 +1,9 @@
-package com.mycompany.smartcampus_20231302.resource;
+package com.mycompany.smartcampus_20231302.resources;
 
-import com.mycompany.smartcampus_20231302.model.ErrorResponse;
-import com.mycompany.smartcampus_20231302.model.Sensor;
-import com.mycompany.smartcampus_20231302.model.SensorReading;
-import com.mycompany.smartcampus_20231302.store.DataStore;
+import com.mycompany.smartcampus_20231302.models.ErrorResponse;
+import com.mycompany.smartcampus_20231302.models.SensorDevice;
+import com.mycompany.smartcampus_20231302.models.SensorData;
+import com.mycompany.smartcampus_20231302.stores.SystemDataStore;
 import java.util.List;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
@@ -18,17 +18,17 @@ import javax.ws.rs.core.Response;
  */
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
-public class SensorReadingResource {
+public class SensorReadingEndpoint {
 
     private final int sensorId;
-    private final DataStore dataStore = DataStore.getInstance();
+    private final SystemDataStore dataStore = SystemDataStore.getInstance();
 
     /**
      * Creates a sub-resource bound to one parent sensor id.
      *
      * @param sensorId parent sensor identifier
      */
-    public SensorReadingResource(int sensorId) {
+    public SensorReadingEndpoint(int sensorId) {
         this.sensorId = sensorId;
     }
 
@@ -38,11 +38,11 @@ public class SensorReadingResource {
      * @return list of readings
      */
     @GET
-    public List<SensorReading> getReadingHistory() {
-        Sensor sensor = dataStore.getSensorById(sensorId);
+    public List<SensorData> getReadingHistory() {
+        SensorDevice sensor = dataStore.getSensorById(sensorId);
         // Enforce parent existence for sub-resource endpoint.
         if (sensor == null) {
-            throw notFound("Sensor " + sensorId + " not found.");
+            throw notFound("SensorDevice " + sensorId + " not found.");
         }
         return dataStore.getReadingsForSensor(sensorId);
     }
@@ -54,18 +54,18 @@ public class SensorReadingResource {
      * @return created reading with HTTP 201
      */
     @POST
-    public Response addReading(SensorReading request) {
-        Sensor sensor = dataStore.getSensorById(sensorId);
+    public Response addReading(SensorData request) {
+        SensorDevice sensor = dataStore.getSensorById(sensorId);
         if (sensor == null) {
-            throw notFound("Sensor " + sensorId + " not found.");
+            throw notFound("SensorDevice " + sensorId + " not found.");
         }
         // Validate required payload field before store update.
         if (request == null || request.getValue() == null) {
             throw badRequest("Reading payload must include a numeric value.");
         }
 
-        // DataStore enforces MAINTENANCE rule and updates sensor.currentValue.
-        SensorReading created = dataStore.addReading(sensorId, request);
+        // SystemDataStore enforces MAINTENANCE rule and updates sensor.currentValue.
+        SensorData created = dataStore.addReading(sensorId, request);
         return Response.status(Response.Status.CREATED).entity(created).build();
     }
 

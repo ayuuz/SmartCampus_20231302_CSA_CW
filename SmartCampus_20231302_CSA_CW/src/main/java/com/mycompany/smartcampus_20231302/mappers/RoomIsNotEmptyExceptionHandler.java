@@ -1,7 +1,7 @@
-package com.mycompany.smartcampus_20231302.mapper;
+package com.mycompany.smartcampus_20231302.mappers;
 
-import com.mycompany.smartcampus_20231302.exception.RoomNotEmptyException;
-import com.mycompany.smartcampus_20231302.model.ErrorResponse;
+import com.mycompany.smartcampus_20231302.exceptions.RoomIsNotEmptyException;
+import com.mycompany.smartcampus_20231302.models.ErrorResponse;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -10,10 +10,10 @@ import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
 /**
- * Maps RoomNotEmptyException to HTTP 409 with structured JSON error body.
+ * Maps RoomIsNotEmptyException to HTTP 409 with structured JSON error body.
  */
 @Provider
-public class RoomNotEmptyExceptionMapper implements ExceptionMapper<RoomNotEmptyException> {
+public class RoomIsNotEmptyExceptionHandler implements ExceptionMapper<RoomIsNotEmptyException> {
 
     @Context
     private UriInfo uriInfo;
@@ -25,7 +25,7 @@ public class RoomNotEmptyExceptionMapper implements ExceptionMapper<RoomNotEmpty
      * @return HTTP 409 response
      */
     @Override
-    public Response toResponse(RoomNotEmptyException exception) {
+    public Response toResponse(RoomIsNotEmptyException exception) {
         // Capture current request path for client troubleshooting.
         String path = uriInfo == null ? "/api/v1/rooms" : uriInfo.getRequestUri().getPath();
         ErrorResponse error = ErrorResponse.of(409, "Conflict", exception.getMessage(), path);

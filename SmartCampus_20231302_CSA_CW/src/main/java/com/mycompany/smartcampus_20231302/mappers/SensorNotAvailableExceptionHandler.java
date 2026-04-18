@@ -1,7 +1,7 @@
-package com.mycompany.smartcampus_20231302.mapper;
+package com.mycompany.smartcampus_20231302.mappers;
 
-import com.mycompany.smartcampus_20231302.exception.SensorUnavailableException;
-import com.mycompany.smartcampus_20231302.model.ErrorResponse;
+import com.mycompany.smartcampus_20231302.exceptions.SensorNotAvailableException;
+import com.mycompany.smartcampus_20231302.models.ErrorResponse;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -10,10 +10,10 @@ import javax.ws.rs.ext.ExceptionMapper;
 import javax.ws.rs.ext.Provider;
 
 /**
- * Maps SensorUnavailableException to HTTP 403 with JSON error body.
+ * Maps SensorNotAvailableException to HTTP 403 with JSON error body.
  */
 @Provider
-public class SensorUnavailableExceptionMapper implements ExceptionMapper<SensorUnavailableException> {
+public class SensorNotAvailableExceptionHandler implements ExceptionMapper<SensorNotAvailableException> {
 
     @Context
     private UriInfo uriInfo;
@@ -25,7 +25,7 @@ public class SensorUnavailableExceptionMapper implements ExceptionMapper<SensorU
      * @return HTTP 403 response
      */
     @Override
-    public Response toResponse(SensorUnavailableException exception) {
+    public Response toResponse(SensorNotAvailableException exception) {
         // Include request path so clients can locate failing operation.
         String path = uriInfo == null ? "/api/v1/sensors" : uriInfo.getRequestUri().getPath();
         ErrorResponse error = ErrorResponse.of(403, "Forbidden", exception.getMessage(), path);

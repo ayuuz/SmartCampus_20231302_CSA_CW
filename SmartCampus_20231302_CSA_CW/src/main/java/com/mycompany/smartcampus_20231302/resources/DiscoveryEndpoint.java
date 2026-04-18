@@ -1,7 +1,7 @@
-package com.mycompany.smartcampus_20231302.resource;
+package com.mycompany.smartcampus_20231302.resources;
 
-import com.mycompany.smartcampus_20231302.model.AdminContact;
-import com.mycompany.smartcampus_20231302.model.DiscoveryResponse;
+import com.mycompany.smartcampus_20231302.models.AdminContact;
+import com.mycompany.smartcampus_20231302.models.DiscoveryResponse;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import javax.ws.rs.GET;
@@ -14,7 +14,7 @@ import javax.ws.rs.core.MediaType;
  */
 @Path("")
 @Produces(MediaType.APPLICATION_JSON)
-public class DiscoveryResource {
+public class DiscoveryEndpoint {
 
     /**
      * Returns version, admin details, and discoverable collection links.

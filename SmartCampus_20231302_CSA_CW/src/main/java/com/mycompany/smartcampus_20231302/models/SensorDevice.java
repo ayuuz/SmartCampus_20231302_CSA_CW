@@ -1,9 +1,9 @@
-package com.mycompany.smartcampus_20231302.model;
+package com.mycompany.smartcampus_20231302.models;
 
 /**
  * Represents a sensor device installed in a room.
  */
-public class Sensor {
+public class SensorDevice {
 
     private Integer id;
     private String name;
@@ -15,7 +15,7 @@ public class Sensor {
     /**
      * Creates an empty sensor object for JSON deserialization.
      */
-    public Sensor() {
+    public SensorDevice() {
     }
 
     /**
@@ -28,7 +28,7 @@ public class Sensor {
      * @param roomId linked room id
      * @param currentValue latest value recorded by sensor
      */
-    public Sensor(Integer id, String name, String type, SensorStatus status, Integer roomId, Double currentValue) {
+    public SensorDevice(Integer id, String name, String type, SensorStatus status, Integer roomId, Double currentValue) {
         this.id = id;
         this.name = name;
         this.type = type;

@@ -1,6 +1,6 @@
-package com.mycompany.smartcampus_20231302.mapper;
+package com.mycompany.smartcampus_20231302.mappers;
 
-import com.mycompany.smartcampus_20231302.model.ErrorResponse;
+import com.mycompany.smartcampus_20231302.models.ErrorResponse;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.ws.rs.WebApplicationException;
@@ -15,9 +15,9 @@ import javax.ws.rs.ext.Provider;
  * Global safety-net mapper for unhandled exceptions.
  */
 @Provider
-public class GlobalExceptionMapper implements ExceptionMapper<Throwable> {
+public class GlobalExceptionHandler implements ExceptionMapper<Throwable> {
 
-    private static final Logger LOGGER = Logger.getLogger(GlobalExceptionMapper.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(GlobalExceptionHandler.class.getName());
 
     @Context
     private UriInfo uriInfo;

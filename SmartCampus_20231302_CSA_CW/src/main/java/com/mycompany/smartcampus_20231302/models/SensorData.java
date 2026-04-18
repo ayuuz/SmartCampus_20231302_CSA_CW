@@ -1,9 +1,9 @@
-package com.mycompany.smartcampus_20231302.model;
+package com.mycompany.smartcampus_20231302.models;
 
 /**
  * Represents one historical reading produced by a sensor.
  */
-public class SensorReading {
+public class SensorData {
 
     private Integer id;
     private Integer sensorId;
@@ -13,7 +13,7 @@ public class SensorReading {
     /**
      * Creates an empty sensor reading object for JSON deserialization.
      */
-    public SensorReading() {
+    public SensorData() {
     }
 
     /**
@@ -24,7 +24,7 @@ public class SensorReading {
      * @param value reading value
      * @param timestamp epoch-millis timestamp
      */
-    public SensorReading(Integer id, Integer sensorId, Double value, Long timestamp) {
+    public SensorData(Integer id, Integer sensorId, Double value, Long timestamp) {
         this.id = id;
         this.sensorId = sensorId;
         this.value = value;
