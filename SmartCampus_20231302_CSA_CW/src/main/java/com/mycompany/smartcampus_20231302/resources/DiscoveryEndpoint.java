@@ -8,6 +8,7 @@ import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 
 /**
  * Root discovery endpoint exposing API metadata and top-level links.
@@ -31,5 +32,14 @@ public class DiscoveryEndpoint {
         // Basic contact block for administration/support.
         AdminContact admin = new AdminContact("Ayumi Dissanayake", "admin@example.com");
         return new DiscoveryResponse("v1", admin, resources);
+    }
+
+    /**
+     * Artificial endpoint designed ONLY to prove the Global Exception Mapper works for the video demo.
+     */
+    @GET
+    @Path("/crash")
+    public Response triggerCrash() {
+        throw new RuntimeException("This is a simulated internal server error to demonstrate the Catch-All Exception Mapper!");
     }
 }
